@@ -19,7 +19,7 @@ runcmd:
   - usermod -aG docker root
   - mkdir -p /opt/quotes-app
   - cd /opt/quotes-app
-  - git clone https://github.com/yourusername/quotes-app.git .
+  - git clone https://github.com/thetanomial/django-react-quotes-app.git .
   - echo "POSTGRES_PASSWORD=$(openssl rand -base64 32)" > .env
   - echo "DJANGO_SECRET_KEY=$(openssl rand -base64 50)" >> .env
   - echo "DEBUG=False" >> .env
