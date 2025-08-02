@@ -1,0 +1,85 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+
+packages:
+  - git
+  - curl
+  - wget
+
+runcmd:
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+  - echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+  - apt-get update
+  - apt-get install -y docker-ce docker-ce-cli containerd.io
+  - curl -L "https://github.com/docker/compose/releases/download/v2.20.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+  - chmod +x /usr/local/bin/docker-compose
+  - systemctl start docker
+  - systemctl enable docker
+  - usermod -aG docker root
+  - mkdir -p /opt/quotes-app
+  - cd /opt/quotes-app
+  - git clone https://github.com/yourusername/quotes-app.git .
+  - echo "POSTGRES_PASSWORD=$(openssl rand -base64 32)" > .env
+  - echo "DJANGO_SECRET_KEY=$(openssl rand -base64 50)" >> .env
+  - echo "DEBUG=False" >> .env
+  - docker-compose -f docker-compose.prod.yml up -d
+
+write_files:
+  - path: /opt/quotes-app/docker-compose.prod.yml
+    content: |
+      version: '3.8'
+      
+      services:
+        db:
+          image: postgres:15
+          environment:
+            POSTGRES_DB: quotes_db
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+          volumes:
+            - postgres_data:/var/lib/postgresql/data
+          secrets:
+            - db_password
+          restart: unless-stopped
+      
+        redis:
+          image: redis:7-alpine
+          restart: unless-stopped
+      
+        backend:
+          image: quotes-backend:latest
+          environment:
+            - DEBUG=False
+            - DB_NAME=quotes_db
+            - DB_USER=postgres
+            - DB_PASSWORD_FILE=/run/secrets/db_password
+            - DB_HOST=db
+            - DB_PORT=5432
+            - REDIS_HOST=redis
+            - REDIS_PORT=6379
+            - SECRET_KEY_FILE=/run/secrets/django_secret
+          depends_on:
+            - db
+            - redis
+          secrets:
+            - db_password
+            - django_secret
+          restart: unless-stopped
+      
+        frontend:
+          image: quotes-frontend:latest
+          ports:
+            - "80:80"
+          depends_on:
+            - backend
+          restart: unless-stopped
+      
+      volumes:
+        postgres_data:
+      
+      secrets:
+        db_password:
+          file: ./secrets/db_password.txt
+        django_secret:
+          file: ./secrets/django_secret.txt

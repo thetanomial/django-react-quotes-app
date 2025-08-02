@@ -1,0 +1,10 @@
+# Copy this file to terraform.tfvars and fill in your values
+
+# DigitalOcean API token
+do_token = "your_digitalocean_api_token_here"
+
+# SSH key name (must already exist in your DigitalOcean account)
+ssh_key_name = "python-droplet"
+
+# DigitalOcean region
+region = "nyc1"
