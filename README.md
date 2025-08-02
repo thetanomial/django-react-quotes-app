@@ -39,8 +39,8 @@ A full-stack application that delivers inspirational quotes in real-time every 1
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd docker-terraform-django-react-xp
+   git clone https://github.com/thetanomial/django-react-quotes-app.git
+   cd django-react-quotes-app
    ```
 
 2. **Start local development environment**
@@ -54,7 +54,18 @@ A full-stack application that delivers inspirational quotes in real-time every 1
    - Backend API: http://localhost:8000/api/
    - Admin Panel: http://localhost:8000/admin/
 
-### Production Deployment to DigitalOcean
+### Automated Production Deployment
+
+**🤖 Automatic Deployment:** Every push to the `main` branch automatically deploys to production!
+
+#### How It Works:
+1. **Push code** to GitHub
+2. **GitHub Actions** automatically triggers
+3. **Deploys** to DigitalOcean droplet
+4. **Tests** the deployment
+5. **Notifies** success/failure
+
+#### Manual Production Deployment (If Needed)
 
 1. **Prerequisites**
    - DigitalOcean account and API token
@@ -96,6 +107,41 @@ docker-terraform-django-react-xp/
 ├── docker-compose.yml      # Local development
 └── README.md
 ```
+
+## 🤖 Automated Deployment Workflow
+
+### GitHub Actions CI/CD Pipeline
+
+This project includes a complete CI/CD pipeline that automatically deploys changes to production:
+
+#### Workflow Features:
+- **Triggers:** On push to `main` branch
+- **Steps:**
+  1. Checkout latest code
+  2. Setup SSH connection to droplet
+  3. Pull latest changes on server
+  4. Rebuild Docker containers
+  5. Health check the deployment
+  6. Notify success/failure
+
+#### Required GitHub Secrets:
+- `SSH_PRIVATE_KEY` - Private SSH key for droplet access
+- `DROPLET_IP` - IP address of the DigitalOcean droplet
+
+#### Making Changes:
+```bash
+# Make your changes
+git add .
+git commit -m "Your change description"
+git push
+
+# 🎉 Deployment happens automatically!
+```
+
+#### Monitoring Deployments:
+- View workflow runs: https://github.com/thetanomial/django-react-quotes-app/actions
+- Each deployment takes ~2-3 minutes
+- Failed deployments will show detailed error logs
 
 ## 🔧 Development
 
