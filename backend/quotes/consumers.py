@@ -23,7 +23,7 @@ class QuoteConsumer(AsyncWebsocketConsumer):
                     'type': 'quote',
                     'data': quote_data
                 }))
-            await asyncio.sleep(15)
+            await asyncio.sleep(5)
 
     @database_sync_to_async
     def get_random_quote(self):
