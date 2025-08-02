@@ -1,0 +1,70 @@
+#!/usr/bin/expect -f
+
+set timeout 300
+set passphrase "secret"
+
+spawn ssh root@24.144.98.47
+
+expect {
+    "Enter passphrase for key" {
+        send "$passphrase\r"
+        exp_continue
+    }
+    "root@quotes-app-server:~#" {
+        send "echo 'Connected successfully!'\r"
+    }
+    "Are you sure you want to continue connecting" {
+        send "yes\r"
+        exp_continue
+    }
+    timeout {
+        puts "Connection timeout"
+        exit 1
+    }
+    eof {
+        puts "Connection failed"
+        exit 1
+    }
+}
+
+# Now execute the deployment commands
+send "cd /opt/quotes-app\r"
+expect "root@quotes-app-server:*"
+
+send "rm -rf *\r"
+expect "root@quotes-app-server:*"
+
+send "git clone https://github.com/thetanomial/django-react-quotes-app.git .\r"
+expect "root@quotes-app-server:*"
+
+send "POSTGRES_PASSWORD=\$(openssl rand -base64 32)\r"
+expect "root@quotes-app-server:*"
+
+send "DJANGO_SECRET_KEY=\$(openssl rand -base64 50)\r"
+expect "root@quotes-app-server:*"
+
+send "cat > .env << EOF\r"
+expect ">"
+send "POSTGRES_PASSWORD=\$POSTGRES_PASSWORD\r"
+expect ">"
+send "DJANGO_SECRET_KEY=\$DJANGO_SECRET_KEY\r"
+expect ">"
+send "DEBUG=False\r"
+expect ">"
+send "EOF\r"
+expect "root@quotes-app-server:*"
+
+send "docker-compose -f docker-compose.prod.yml down 2>/dev/null || true\r"
+expect "root@quotes-app-server:*"
+
+send "docker-compose -f docker-compose.prod.yml up -d --build\r"
+expect "root@quotes-app-server:*" 120
+
+send "docker-compose -f docker-compose.prod.yml ps\r"
+expect "root@quotes-app-server:*"
+
+send "echo 'Deployment completed!'\r"
+expect "root@quotes-app-server:*"
+
+send "exit\r"
+expect eof

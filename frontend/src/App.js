@@ -9,7 +9,7 @@ function App() {
 
   useEffect(() => {
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${wsProtocol}//${window.location.hostname}:8000/ws/quotes/`;
+    const wsUrl = `${wsProtocol}//${window.location.hostname}/ws/quotes/`;
     
     const newSocket = new WebSocket(wsUrl);
 
